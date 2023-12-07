@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 class PriorityCheckBox extends StatefulWidget {
   String prioritySelected = '';
   Function? onSelect;
 
   PriorityCheckBox(
-      {Key? key, required this.prioritySelected, required this.onSelect})
-      : super(key: key);
+      {super.key, required this.prioritySelected, required this.onSelect});
 
   @override
   State<PriorityCheckBox> createState() => _PriorityCheckBoxState();

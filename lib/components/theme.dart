@@ -2,6 +2,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 
 final ThemeData theme = ThemeData(
+  scaffoldBackgroundColor: Color.fromRGBO(62, 62, 62, 1),
   fontFamily: GoogleFonts.montserrat().fontFamily,
   textTheme: const TextTheme().apply(
       fontFamily: GoogleFonts.montserrat().fontFamily,

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:todo_app/screens/add_info_screen.dart';
 
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  const CustomAppbar({Key? key, required this.title}) : super(key: key);
+  final String imageUrl;
+  void Function() refreshScreen;
+  CustomAppbar(
+      {super.key,
+      required this.title,
+      required this.imageUrl,
+      required this.refreshScreen});
 
   @override
   Size get preferredSize => const Size.fromHeight(100);
@@ -10,13 +17,28 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      automaticallyImplyLeading: false,
       title: Row(
         children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Theme.of(context).colorScheme.background,
-            foregroundColor: Theme.of(context).colorScheme.secondary,
-            child: const Icon(Icons.account_circle, color: Colors.white),
+          GestureDetector(
+            onTap: () {
+              if (context.mounted) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            AddInfoScreen(refreshScreen: refreshScreen)));
+              }
+            },
+            child: CircleAvatar(
+              radius: 40,
+              backgroundColor: Theme.of(context).colorScheme.background,
+              foregroundColor: Theme.of(context).colorScheme.secondary,
+              backgroundImage: imageUrl != '' ? NetworkImage(imageUrl) : null,
+              child: imageUrl == ''
+                  ? const Icon(Icons.account_circle, color: Colors.white)
+                  : null,
+            ),
           ),
           const SizedBox(
             width: 10,
@@ -47,7 +69,7 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
       toolbarHeight: 100,
       actions: [
         IconButton(
-          onPressed: () => {},
+          onPressed: () => {Scaffold.of(context).openEndDrawer()},
           icon: const Icon(
             Icons.menu_rounded,
             size: 35,

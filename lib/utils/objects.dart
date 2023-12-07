@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 class Todo {
   String title, description, date, time, priority;
   bool isNotify;
@@ -21,5 +23,32 @@ class Todo {
       'priority': priority,
       'isNotify': isNotify,
     };
+  }
+
+  String getWeekDay() {
+    var weekdays = {
+      1: "Monday",
+      2: "Tuesday",
+      3: "Wednesday",
+      4: "Thursday",
+      5: "Friday",
+      6: "Saturday",
+      7: "Sunday"
+    };
+    return weekdays[DateTime.parse(date).weekday]!;
+  }
+}
+
+class UserAdditionalInfo {
+  //ing.ani nalang kaysa mag edit sa firebase
+  String image, nickname;
+  User? user;
+  UserAdditionalInfo({required this.image, required this.nickname, this.user});
+
+  static UserAdditionalInfo fromMap(Map<String, dynamic> map) {
+    UserAdditionalInfo user =
+        UserAdditionalInfo(image: map['image'], nickname: map['nickname']);
+
+    return user;
   }
 }

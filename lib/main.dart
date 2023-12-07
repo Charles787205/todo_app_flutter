@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/utils/firestore.dart';
+import 'package:todo_app/utils/database_functions.dart'; //Diri ang access sa database (Fiebase-Firestore)
 import 'components/theme.dart';
 import 'components/custom_appbar.dart';
 import 'components/search_field.dart';
@@ -15,7 +15,7 @@ import 'package:todo_app/utils/objects.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -48,10 +48,27 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late Future<UserCredential> _signInFuture;
   late Future<List<Todo>> _todos;
-
+  String title = "User";
+  UserAdditionalInfo? userAdditionalInfo;
+  String _priority = '';
+  @override
   void initState() {
     super.initState();
     _initializeSignInFuture();
+    getUserAdditionalInfo().then((value) => setState(
+          () {
+            userAdditionalInfo = value;
+            if (userAdditionalInfo?.nickname == '') {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          AddInfoScreen(refreshScreen: getUAI)));
+            } else {
+              title = userAdditionalInfo!.nickname;
+            }
+          },
+        ));
   }
 
   Future<void> _initializeSignInFuture() async {
@@ -60,14 +77,156 @@ class _MyHomePageState extends State<MyHomePage> {
       _todos = getTodos();
     } catch (error) {
       print("Error initializing sign-in: $error");
-      // Handle initialization error as needed
+    }
+  }
+
+  Future<void> getUAI() async {
+    try {
+      var value = await getUserAdditionalInfo();
+      setState(() {
+        userAdditionalInfo = value;
+        if (userAdditionalInfo?.nickname == '') {
+          title = 'No nickname';
+        } else {
+          title = userAdditionalInfo!.nickname;
+        }
+      });
+    } catch (error) {
+      // Handle the error as needed
+      print('Error getting user additional info: $error');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: const CustomAppbar(title: "Hello Mike"),
+        appBar: CustomAppbar(
+          refreshScreen: () {
+            getUAI();
+          },
+          title: title,
+          imageUrl: userAdditionalInfo != null ? userAdditionalInfo!.image : '',
+        ),
+        endDrawer: Container(
+          //color: Theme.of(context).scaffoldBackgroundColor,
+          width: 200,
+          decoration:
+              BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
+          child: ListView(children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                      radius: 40,
+                      backgroundImage: NetworkImage(userAdditionalInfo != null
+                          ? userAdditionalInfo!.image
+                          : '')),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                      userAdditionalInfo != null
+                          ? userAdditionalInfo!.nickname
+                          : '',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20)),
+                ],
+              ),
+            ),
+            ListBody(
+              children: [
+                ListTile(
+                  leading: Icon(
+                    Icons.home_outlined,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  title: Text("Home",
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary,
+                          fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    setState(() {
+                      _priority = '';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.star_border,
+                    color: Colors.red,
+                  ),
+                  title: const Text(
+                    "Urgent",
+                    style: TextStyle(
+                        color: Colors.red, fontWeight: FontWeight.bold),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _priority = 'urgent';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                    leading: Icon(
+                      Icons.star_border,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text("High",
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold)),
+                    onTap: () {
+                      setState(() {
+                        _priority = 'high';
+                      });
+                      Navigator.pop(context);
+                    }),
+                ListTile(
+                    leading: Icon(
+                      Icons.star_border,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    title: Text(
+                      "Normal",
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _priority = 'normal';
+                      });
+                      Navigator.pop(context);
+                    }),
+                ListTile(
+                  leading: const Icon(
+                    Icons.star_border,
+                    color: Colors.white24,
+                  ),
+                  title: const Text(
+                    "Low",
+                    style: TextStyle(
+                        color: Colors.white24, fontWeight: FontWeight.bold),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _priority = 'low';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            )
+          ]),
+        ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           child: IntrinsicHeight(
@@ -95,50 +254,56 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   ),
                   FutureBuilder<List<Todo>>(
-                      future: _todos,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else {
-                            List<Todo> todos = snapshot.data ?? [];
-
-                            if (todos.isEmpty) {
-                              return const Column(
-                                children: [
-                                  SizedBox(
-                                    height: 100,
-                                  ),
-                                  NoToDo()
-                                ],
-                              );
-                            } else {
-                              return Column(
-                                children: [
-                                  for (Todo todo in todos)
-                                    TodoCard(
-                                      todoText: todo.title.length > 12
-                                          ? '${todo.title.substring(0, 12)}...'
-                                          : todo.title,
-                                      dueDate: todo.date,
-                                      onChange: (value) {},
-                                    )
-                                ],
-                              );
-                            }
-                          }
+                    future: _todos,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
                         } else {
-                          return const Column(
-                            children: [
-                              SizedBox(
-                                height: 100,
-                              ),
-                              CircularProgressIndicator(),
-                              Text("Loading")
-                            ],
-                          );
+                          List<Todo> todos = snapshot.data ?? [];
+
+                          if (todos.isEmpty) {
+                            return const Column(
+                              children: [
+                                SizedBox(
+                                  height: 100,
+                                ),
+                                NoToDo()
+                              ],
+                            );
+                          } else {
+                            List<Todo> filteredTodos = _priority.isEmpty
+                                ? todos
+                                : todos
+                                    .where((todo) => todo.priority == _priority)
+                                    .toList();
+
+                            return filteredTodos.isEmpty
+                                ? NoToDo()
+                                : Column(
+                                    children: [
+                                      for (Todo todo in filteredTodos)
+                                        TodoCard(
+                                          todo: todo,
+                                          onChange: (value) {},
+                                        ),
+                                    ],
+                                  );
+                          }
                         }
-                      }),
+                      } else {
+                        return const Column(
+                          children: [
+                            SizedBox(
+                              height: 100,
+                            ),
+                            CircularProgressIndicator(),
+                            Text("Loading")
+                          ],
+                        );
+                      }
+                    },
+                  )
                 ],
               ),
             ),

@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import "package:todo_app/components/custom_textfield.dart";
 import "package:todo_app/components/time_textfield.dart";
 import "package:todo_app/components/date_textfield.dart";
 import "package:todo_app/components/priority_checkbox.dart";
-import "package:todo_app/utils/firestore.dart";
-import 'package:flutter/foundation.dart';
+import 'package:todo_app/utils/database_functions.dart';
 import "package:todo_app/utils/objects.dart";
-import 'package:todo_app/utils/firestore.dart';
 
 class AddToDoScreen extends StatefulWidget {
   final VoidCallback refreshTodos;
   AddToDoScreen({super.key, required this.refreshTodos});
+  @override
   State<AddToDoScreen> createState() => _AddToDoScreen();
 
   final titleController = TextEditingController();
@@ -26,6 +24,7 @@ class AddToDoScreen extends StatefulWidget {
 class _AddToDoScreen extends State<AddToDoScreen> {
   bool _isNotify = false;
   String prioritySelected = '';
+  String imagePath = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
