@@ -44,12 +44,17 @@ class _DateTextFieldState extends State<DateTextField> {
       onTap: () async {
         FocusScope.of(context).requestFocus(FocusNode());
         DateTime? date = await showDatePicker(
-            context: context,
-            firstDate: DateTime.now(),
-            lastDate: DateTime(2101));
+          context: context,
+          firstDate: DateTime.now(),
+          lastDate: DateTime(2101),
+        );
         date ??= DateTime.now();
-        String displayDate = "${date.year}-${date.month}-${date.day}";
-        widget.controller.text = context.mounted ? displayDate : '';
+
+        String displayDate =
+            "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+        if (context.mounted) {
+          widget.controller.text = displayDate;
+        }
       },
     );
   }

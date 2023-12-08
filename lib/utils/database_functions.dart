@@ -55,17 +55,18 @@ Future<List<Todo>> getTodos() async {
     List<Todo> todos = [];
 
     for (var doc in querySnapshot.docs) {
+      print(doc.id);
       var data = doc.data();
 
       // Use data from Firestore to create Todo objects
       Todo todo = Todo(
-        title: data['title'] ?? '',
-        description: data['description'] ?? '',
-        time: data['time'] ?? '',
-        date: data['date'] ?? '',
-        isNotify: data['isNotify'] ?? false,
-        priority: data['priority'] ?? '',
-      );
+          title: data['title'] ?? '',
+          description: data['description'] ?? '',
+          time: data['time'] ?? '',
+          date: data['date'] ?? '',
+          isNotify: data['isNotify'] ?? false,
+          priority: data['priority'] ?? '',
+          id: doc.id);
 
       todos.add(todo);
     }
@@ -158,5 +159,35 @@ Future<void> uploadImage(String imagePath, String nickname) async {
     }
   } catch (e) {
     print('Error uploading image: $e');
+  }
+}
+
+Future<void> deleteTodo(String id) async {
+  var todoCollection = FirebaseFirestore.instance
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection('todos');
+  print(id);
+  try {
+    await todoCollection.doc(id).delete();
+    print("todo deleted successfully");
+  } catch (e) {
+    print(e);
+  }
+}
+
+Future<bool> editTodo(Todo todo) async {
+  FirebaseFirestore db = FirebaseFirestore.instance;
+  User? user = FirebaseAuth.instance.currentUser;
+  print(todo.toMap());
+  try {
+    var todoRef =
+        db.collection("users").doc(user!.uid).collection("todos").doc(todo.id);
+    await todoRef.set(todo.toMap());
+    return true;
+  } catch (e) {
+    print(e);
+    print('addTodo error');
+    return false;
   }
 }

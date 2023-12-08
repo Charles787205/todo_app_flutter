@@ -46,6 +46,23 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String _search = '';
+
+  TextStyle _getPriorityStyle(String priority) {
+    switch (priority) {
+      case 'urgent':
+        return const TextStyle(color: Colors.red);
+      case 'high':
+        return TextStyle(color: Theme.of(context).colorScheme.primary);
+      case 'normal':
+        return TextStyle(color: Theme.of(context).colorScheme.secondary);
+      case 'low':
+        return const TextStyle(color: Colors.white24);
+      default:
+        return const TextStyle(); // Default style
+    }
+  }
+
   late Future<UserCredential> _signInFuture;
   late Future<List<Todo>> _todos;
   String title = "User";
@@ -76,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _signInFuture = signInWithGoogle();
       _todos = getTodos();
     } catch (error) {
-      print("Error initializing sign-in: $error");
+      print(error);
     }
   }
 
@@ -93,12 +110,38 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } catch (error) {
       // Handle the error as needed
+      // ignore: avoid_print
       print('Error getting user additional info: $error');
     }
   }
 
+  Future<List<Todo>> filterTodoByPriority(String priority) async {
+    List<Todo> todos = await _todos;
+    if (priority.isEmpty) {
+      return _todos;
+    }
+    List<Todo> filteredTodos = _priority.isEmpty
+        ? todos
+        : todos.where((todo) => todo.priority == _priority).toList();
+    return filteredTodos;
+  }
+
+  List<Todo> filterTodoBySearch(
+      String userSearch, List<Todo> filteredTodosByPriority) {
+    if (userSearch.isEmpty) {
+      return filteredTodosByPriority;
+    }
+    List<Todo> filteredTodos = filteredTodosByPriority
+        .where((todo) =>
+            todo.title.toLowerCase().contains(userSearch.toLowerCase()))
+        .toList();
+    return filteredTodos;
+  }
+
   @override
   Widget build(BuildContext context) {
+    _todos = getTodos();
+
     return Scaffold(
         appBar: CustomAppbar(
           refreshScreen: () {
@@ -235,7 +278,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  const SearchField(),
+                  SearchField(onChange: (value) {
+                    setState(() {
+                      _search = value;
+                    });
+                  }),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -250,59 +297,68 @@ class _MyHomePageState extends State<MyHomePage> {
                         style: TextStyle(
                             fontSize: 30,
                             color: Theme.of(context).colorScheme.primary),
-                      )
+                      ),
+                      const SizedBox(width: 20),
+                      if (_priority.isNotEmpty)
+                        Text(
+                            '${_priority[0].toUpperCase()}${_priority.substring(1)}',
+                            style: _getPriorityStyle(_priority)),
                     ],
                   ),
-                  FutureBuilder<List<Todo>>(
-                    future: _todos,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else {
-                          List<Todo> todos = snapshot.data ?? [];
-
-                          if (todos.isEmpty) {
-                            return const Column(
-                              children: [
-                                SizedBox(
-                                  height: 100,
-                                ),
-                                NoToDo()
-                              ],
-                            );
-                          } else {
-                            List<Todo> filteredTodos = _priority.isEmpty
-                                ? todos
-                                : todos
-                                    .where((todo) => todo.priority == _priority)
-                                    .toList();
-
-                            return filteredTodos.isEmpty
-                                ? NoToDo()
-                                : Column(
-                                    children: [
-                                      for (Todo todo in filteredTodos)
-                                        TodoCard(
-                                          todo: todo,
-                                          onChange: (value) {},
-                                        ),
-                                    ],
-                                  );
-                          }
-                        }
-                      } else {
-                        return const Column(
-                          children: [
-                            SizedBox(
-                              height: 100,
-                            ),
-                            CircularProgressIndicator(),
-                            Text("Loading")
-                          ],
-                        );
-                      }
+                  RefreshIndicator(
+                    onRefresh: () async {
+                      setState(() {
+                        _todos = getTodos();
+                      });
                     },
+                    child: FutureBuilder<List<Todo>>(
+                      future: filterTodoByPriority(_priority),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            List<Todo> todos = snapshot.data ?? [];
+
+                            if (todos.isEmpty) {
+                              return const Column(
+                                children: [
+                                  SizedBox(
+                                    height: 100,
+                                  ),
+                                  NoToDo()
+                                ],
+                              );
+                            } else {
+                              return Column(
+                                children: [
+                                  for (Todo todo
+                                      in filterTodoBySearch(_search, todos))
+                                    TodoCard(
+                                        todo: todo,
+                                        onChange: (value) {},
+                                        refreshPage: () {
+                                          setState(() {
+                                            _todos = getTodos();
+                                          });
+                                        }),
+                                ],
+                              );
+                            }
+                          }
+                        } else {
+                          return const Column(
+                            children: [
+                              SizedBox(
+                                height: 100,
+                              ),
+                              CircularProgressIndicator(),
+                              Text("Loading")
+                            ],
+                          );
+                        }
+                      },
+                    ),
                   )
                 ],
               ),

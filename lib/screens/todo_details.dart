@@ -1,25 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:todo_app/utils/database_functions.dart';
 import 'package:todo_app/utils/objects.dart';
+import 'package:todo_app/screens/edit_todo_screen.dart';
 
 class TodoDetails extends StatelessWidget {
   final Todo todo;
-  const TodoDetails({super.key, required this.todo});
+  Function? refreshPage;
+  TodoDetails({super.key, required this.todo, this.refreshPage});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.background,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.keyboard_double_arrow_left,
+            size: 40,
+          ),
+          onPressed: () => (Navigator.of(context).pop()),
+        ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) => AlertDialog(
+                        title: const Text("Delete To Do"),
+                        elevation: 3,
+                        content: Text(
+                          "Are you sure you want to delete this to do?",
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.secondary),
+                        ),
+                        actions: [
+                          TextButton(
+                              onPressed: () {
+                                deleteTodo(todo.id!);
+
+                                Navigator.pop(context);
+                                Navigator.pop(context);
+                                refreshPage!();
+                              },
+                              child: const Text("Delete")),
+                          TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text("Cancel")),
+                        ],
+                      ));
+            },
             icon: const Icon(
               Icons.delete_outline_rounded,
               color: Colors.red,
             ),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (builder) => EditToDoScreen(
+                          refreshTodos: () {
+                            refreshPage!();
+                          },
+                          todo: todo)));
+            },
             icon: Icon(
               Icons.edit,
               color: Theme.of(context).colorScheme.primary,

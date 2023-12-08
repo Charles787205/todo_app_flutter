@@ -5,7 +5,12 @@ import 'package:todo_app/utils/objects.dart';
 class TodoCard extends StatefulWidget {
   final Function onChange;
   final Todo todo;
-  const TodoCard({super.key, required this.todo, required this.onChange});
+  Function? refreshPage;
+  TodoCard(
+      {super.key,
+      required this.todo,
+      required this.onChange,
+      this.refreshPage});
   @override
   State<TodoCard> createState() => _TodoCardState();
 }
@@ -21,7 +26,8 @@ class _TodoCardState extends State<TodoCard> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: ((context) => TodoDetails(todo: widget.todo))));
+                builder: ((context) => TodoDetails(
+                    todo: widget.todo, refreshPage: widget.refreshPage))));
       },
       child: Card(
         color: Theme.of(context).colorScheme.secondary,

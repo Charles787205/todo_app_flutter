@@ -3,15 +3,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 class Todo {
   String title, description, date, time, priority;
   bool isNotify;
+  String? id;
 
-  Todo({
-    required this.title,
-    required this.description,
-    required this.date,
-    required this.time,
-    required this.priority,
-    required this.isNotify,
-  });
+  Todo(
+      {required this.title,
+      required this.description,
+      required this.date,
+      required this.time,
+      required this.priority,
+      required this.isNotify,
+      this.id});
 
   // Convert Todo object to Map
   Map<String, dynamic> toMap() {

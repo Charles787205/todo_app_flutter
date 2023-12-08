@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 class SearchField extends StatelessWidget {
-  const SearchField({
-    super.key,
-  });
-
+  Function(String) onChange = (search) => {};
+  SearchField({super.key, required this.onChange});
+  var searchController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return TextField(
+      onChanged: (value) {
+        onChange(value);
+      },
       style: TextStyle(
         color: Theme.of(context).colorScheme.tertiary,
         fontSize: 20,

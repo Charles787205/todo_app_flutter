@@ -19,7 +19,18 @@ class _AddInfoScreenState extends State<AddInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Let's get your task done!")),
+      appBar: AppBar(
+        title: const Text("Let's get your task done!"),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.keyboard_double_arrow_left,
+            size: 40,
+          ),
+          onPressed: () => (Navigator.of(context).pop()),
+        ),
+        toolbarHeight: 100,
+        centerTitle: true,
+      ),
       resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.all(20.0),
