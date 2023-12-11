@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'objects.dart';
+import 'dart:typed_data';
 
 //Naa diri ang functions para mag add ug data sa Database.
 
@@ -108,7 +109,8 @@ Future<UserAdditionalInfo?> getUserAdditionalInfo() async {
   }
 }
 
-Future<void> uploadImage(String imagePath, String nickname) async {
+Future<void> uploadImage(String nickname,
+    {String? imagePath, Uint8List? fileByte}) async {
   try {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -117,13 +119,11 @@ Future<void> uploadImage(String imagePath, String nickname) async {
       // Get the existing user document
       DocumentSnapshot userDoc = await users.doc(user.uid).get();
       if (imagePath != "") {
-        File file = File(imagePath);
         final storageRef = FirebaseStorage.instance.ref();
         final Reference imageRef =
             storageRef.child('/${DateTime.now().millisecondsSinceEpoch}.jpg');
 
-        // Upload the image to Firebase Storage
-        await imageRef.putFile(file);
+        await imageRef.putData(fileByte!);
 
         // Get the download URL
         final String downloadUrl = await imageRef.getDownloadURL();

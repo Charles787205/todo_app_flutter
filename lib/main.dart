@@ -377,6 +377,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 _todos = getTodos();
                               });
                             },
+                            userImageUrl: userAdditionalInfo?.image,
                           )));
             }
           },

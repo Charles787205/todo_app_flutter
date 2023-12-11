@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import 'package:todo_app/components/custom_textfield.dart';
@@ -15,6 +18,7 @@ class AddInfoScreen extends StatefulWidget {
 class _AddInfoScreenState extends State<AddInfoScreen> {
   TextEditingController nicknameController = TextEditingController();
   String imagePath = '';
+  Uint8List? imageBytes;
   bool _isLoading = false;
   @override
   Widget build(BuildContext context) {
@@ -143,9 +147,9 @@ class _AddInfoScreenState extends State<AddInfoScreen> {
                         hintText: "Upload Image here",
                         iconData: Icons.upload,
                         controller: TextEditingController(),
-                        onTap: (String returnPath) {
+                        onTap: (returnObject) {
                           setState(() {
-                            imagePath = returnPath;
+                            imageBytes = returnObject;
                           });
                         },
                       ),
@@ -153,12 +157,15 @@ class _AddInfoScreenState extends State<AddInfoScreen> {
                       TextButton(
                         onPressed: () async {
                           if (imagePath != '' ||
+                              imageBytes != null ||
                               nicknameController.text != '') {
                             setState(() {
                               _isLoading = true;
                             });
+
                             await uploadImage(
-                                imagePath, nicknameController.text);
+                                fileByte: imageBytes, nicknameController.text);
+
                             widget.refreshScreen();
                             if (context.mounted) {
                               Navigator.pop(context);

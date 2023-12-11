@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:todo_app/utils/database_functions_html.dart';
 
 class CustomUploadField extends StatefulWidget {
   final String hintText;
@@ -40,13 +44,15 @@ class _CustomUploadFieldState extends State<CustomUploadField> {
       ),
       onTap: () async {
         FocusScope.of(context).requestFocus(FocusNode());
-        var image = await ImagePicker().pickImage(source: ImageSource.gallery);
-        if (image != null) {
-          widget.onTap(image.path);
+
+        var pickedFiles = await FilePicker.platform
+            .pickFiles(type: FileType.image, allowMultiple: false);
+        if (pickedFiles != null) {
+          widget.onTap(pickedFiles.files.first.bytes);
           setState(
-            () => _imageName = image.name,
+            () => _imageName = pickedFiles.files.first.name,
           );
-        } else {}
+        }
       },
     );
   }

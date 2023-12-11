@@ -8,7 +8,8 @@ import "package:todo_app/utils/objects.dart";
 
 class AddToDoScreen extends StatefulWidget {
   final VoidCallback refreshTodos;
-  AddToDoScreen({super.key, required this.refreshTodos});
+  String? userImageUrl = '';
+  AddToDoScreen({super.key, required this.refreshTodos, this.userImageUrl});
   @override
   State<AddToDoScreen> createState() => _AddToDoScreen();
 
@@ -41,7 +42,12 @@ class _AddToDoScreen extends State<AddToDoScreen> {
           radius: 40,
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.secondary,
-          child: const Icon(Icons.account_circle, color: Colors.white),
+          backgroundImage: widget.userImageUrl != ''
+              ? NetworkImage(widget.userImageUrl!)
+              : null,
+          child: widget.userImageUrl == ''
+              ? const Icon(Icons.account_circle, color: Colors.white)
+              : null,
         ),
         toolbarHeight: 100,
         backgroundColor: Theme.of(context).colorScheme.background,
